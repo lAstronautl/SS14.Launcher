@@ -60,7 +60,9 @@ switch (args.ElementAtOrDefault(0))
         bundle.Save(bundlePath);
         Console.WriteLine($"\nContent files: {bundle.Files?.Count ?? -1}");
 
-        var engineArgs = LaunchArgs.BuildEngineArgs(addr, info, GetOpt("--username") ?? "AndroidTest").ToList();
+        // --android: same CVars the Android launcher passes (GLES compat mode, no texture preload, ...).
+        var engineArgs = LaunchArgs.BuildEngineArgs(addr, info, GetOpt("--username") ?? "AndroidTest",
+            args.Contains("--android") ? CompatShims.AndroidCVars : null).ToList();
         if (args.Contains("--headless"))
             engineArgs.Add("--headless");
 
@@ -98,7 +100,7 @@ switch (args.ElementAtOrDefault(0))
         return proc.ExitCode;
     }
     default:
-        Console.WriteLine("commands: hub | info <addr> | runtime <major> | play <addr> [--engine-zip z] [--official] [--headless]");
+        Console.WriteLine("commands: hub | info <addr> | runtime <major> | play <addr> [--engine-zip z] [--official] [--headless] [--android]");
         return 1;
 }
 
