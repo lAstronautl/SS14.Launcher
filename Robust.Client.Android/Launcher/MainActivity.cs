@@ -622,13 +622,27 @@ public sealed class MainActivity : Activity
             _settings.Save(FilesPath);
         };
         engine.AddView(engineUrl, Ui.Fill(0, 6, this));
-        var aotOn = Ui.Check(this, "Ускоренный запуск (предкомпилированный код)", _settings.UseAot);
-        aotOn.CheckedChange += (_, e) =>
+
+        var aot = Section(col, "Предкомпиляция");
+        aot.AddView(Ui.Label(this,
+            "Заранее скомпилированный код движка: игра запускается намного быстрее. Скачивается один раз для каждой версии движка.",
+            13, Ui.Muted));
+        aot.AddView(ChoiceRow("При первом входе", new[] { "Спрашивать", "Всегда да", "Всегда нет" }, (int)_settings.AotMode,
+            i =>
+            {
+                if ((int)_settings.AotMode == i)
+                    return;
+                _settings.AotMode = (AotMode)i;
+                _settings.Save(FilesPath);
+            }), Ui.Fill(0, 6, this));
+        aot.AddView(Ui.Button(this, "Сбросить ответы по движкам", () =>
         {
-            _settings.UseAot = e.IsChecked;
+            var n = _settings.AotDecisions.Count;
+            _settings.AotDecisions.Clear();
             _settings.Save(FilesPath);
-        };
-        engine.AddView(aotOn, Ui.Fill(0, 8, this));
+            Toast.MakeText(this, n > 0 ? $"Сброшено ответов: {n}. Лаунчер спросит снова." : "Ответов не было.",
+                ToastLength.Short)!.Show();
+        }), Ui.Fill(0, 8, this));
 
         var data = Section(col, "Данные");
         data.AddView(Ui.Button(this, "Удалить установленные движки", () =>
@@ -821,7 +835,8 @@ public sealed class MainActivity : Activity
             try
             {
                 var connector = new Connector(Http, _settings, FilesPath, CachePath);
-                var spec = await connector.PrepareAsync(address, defaultScale, ConfirmCompatModeAsync, progress, cts.Token);
+                var spec = await connector.PrepareAsync(address, defaultScale, ConfirmCompatModeAsync, AskAotAsync,
+                    progress, cts.Token);
                 RunOnUiThread(() =>
                 {
                     dialog.Dismiss();
@@ -865,6 +880,44 @@ public sealed class MainActivity : Activity
                 .SetPositiveButton("Доверяю, запустить", (_, _) => tcs.TrySetResult(true))!
                 .SetNegativeButton("Отмена", (_, _) => tcs.TrySetResult(false))!
                 .Show();
+        });
+        return tcs.Task;
+    }
+
+    private Task<AotChoice> AskAotAsync(string engine, long size)
+    {
+        var tcs = new TaskCompletionSource<AotChoice>();
+        RunOnUiThread(() =>
+        {
+            var sizeText = size > 0 ? $" (≈{size / 1048576.0:0} МБ)" : "";
+            var body = Ui.Column(this);
+            var pad = Ui.Dp(this, 20);
+            body.SetPadding(pad, Ui.Dp(this, 8), pad, Ui.Dp(this, 8));
+            body.AddView(Ui.Label(this,
+                $"Сервер работает на {engine}.\n\n" +
+                $"Сделать предкомпиляцию{sizeText}? Игра на этом движке будет запускаться намного быстрее.", 15));
+            body.AddView(Ui.Label(this, "Изменить выбор можно в настройках.", 13, Ui.Muted), Ui.Fill(0, 6, this));
+
+            AlertDialog? dialog = null;
+            void Add(string text, AotChoice choice, bool primary = false) =>
+                body.AddView(Ui.Button(this, text, () =>
+                {
+                    tcs.TrySetResult(choice);
+                    dialog?.Dismiss();
+                }, primary), Ui.Fill(0, 8, this));
+            Add("Да", AotChoice.Yes, true);
+            Add("Нет", AotChoice.No);
+            Add("Всегда да", AotChoice.AlwaysYes);
+            Add("Всегда нет", AotChoice.AlwaysNo);
+
+            var scroll = new ScrollView(this);
+            scroll.AddView(body);
+            dialog = new AlertDialog.Builder(this, Resource.Style.LauncherDialog)
+                .SetTitle("Предкомпиляция")!
+                .SetView(scroll)!
+                .SetCancelable(false)!
+                .Create()!;
+            dialog.Show();
         });
         return tcs.Task;
     }

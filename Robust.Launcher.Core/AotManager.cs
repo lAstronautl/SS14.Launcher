@@ -43,6 +43,30 @@ public sealed class AotManager
     public Uri PatchedEnginePackUrl(string engineVersion) =>
         new($"{_engineReleaseBase}android-engine-v{EngineManager.NormalizeVersion(engineVersion)}/Robust.Client_android-aot-arm64.zip");
 
+    /// <summary>Whether this exact pack is already installed in <paramref name="targetDir"/>.</summary>
+    public static bool IsInstalled(Uri url, string targetDir)
+    {
+        var marker = Path.Combine(targetDir, ".aot-installed");
+        return File.Exists(marker) && File.ReadAllText(marker).Trim() == url.AbsoluteUri;
+    }
+
+    /// <summary>Download size of a pack, or null when it is not published.</summary>
+    public async Task<long?> GetSizeAsync(Uri url, CancellationToken ct)
+    {
+        try
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Head, url);
+            using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+            if (!resp.IsSuccessStatusCode)
+                return null;
+            return resp.Content.Headers.ContentLength ?? 0;
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>
     /// Installs the pack into <paramref name="targetDir"/> once (marker file keyed by URL).
     /// Returns the number of images installed, 0 if there is no pack.
@@ -54,7 +78,7 @@ public sealed class AotManager
             return 0;
 
         var marker = Path.Combine(targetDir, ".aot-installed");
-        if (File.Exists(marker) && File.ReadAllText(marker).Trim() == url.AbsoluteUri)
+        if (IsInstalled(url, targetDir))
             return Directory.GetFiles(targetDir, "*.dll.so").Length;
 
         var tmp = Path.Combine(targetDir, ".aot.zip.part");

@@ -20,8 +20,13 @@ public sealed class LauncherSettings
     public bool TouchControls { get; set; } = true;
     public int TouchOpacity { get; set; } = 60;
     public float TouchScale { get; set; } = 1f;
-    /// <summary>Use precompiled (AOT) code for the .NET runtime and engine when available.</summary>
-    public bool UseAot { get; set; } = true;
+    /// <summary>Precompilation (AOT code download per engine): ask on first use of an engine, always, or never.</summary>
+    public AotMode AotMode { get; set; } = AotMode.Ask;
+    /// <summary>Per-engine answers to the precompilation question ("Да"/"Нет"), keyed by <see cref="AotKey"/>.</summary>
+    public Dictionary<string, bool> AotDecisions { get; set; } = new();
+
+    public static string AotKey(EngineSource source, string version) =>
+        (source == EngineSource.Official ? "official-" : "") + EngineManager.NormalizeVersion(version);
     /// <summary>In-game settings chosen in the launcher (only those changed from the game's defaults).</summary>
     public Dictionary<string, string> GameCVars { get; set; } = new();
 
@@ -58,4 +63,20 @@ public sealed class FavoriteServer
 {
     public string Address { get; set; } = "";
     public string Name { get; set; } = "";
+}
+
+public enum AotMode
+{
+    Ask,
+    Always,
+    Never,
+}
+
+/// <summary>Answer to the precompilation question.</summary>
+public enum AotChoice
+{
+    Yes,
+    No,
+    AlwaysYes,
+    AlwaysNo,
 }

@@ -39,7 +39,8 @@ public sealed class Connector
     /// Gets the engine version, returns whether the user agreed.
     /// </param>
     public async Task<GameLaunch> PrepareAsync(ServerAddress address, float defaultUiScale,
-        Func<string, Task<bool>> confirmCompatMode, IProgress<DownloadProgress> progress, CancellationToken ct)
+        Func<string, Task<bool>> confirmCompatMode, Func<string, long, Task<AotChoice>> askAot,
+        IProgress<DownloadProgress> progress, CancellationToken ct)
     {
         progress.Report(new DownloadProgress("Получение информации о сервере", 0, 0));
         var info = await new ServerApi(_http).GetInfoAsync(address, ct);
@@ -111,19 +112,15 @@ public sealed class Connector
         var runtimes = new RuntimeManager(_http, _filesDir);
         var runtimeDir = await runtimes.EnsureRuntimeAsync(runtimeInfo.Major, progress, ct);
 
-        // Precompiled native code for the runtime and the engine, when published: much faster startup than
-        // JIT-compiling everything on the phone. Optional, never fatal.
-        var aot = new AotManager(_http, _settings.EngineReleaseBase);
-        if (_settings.UseAot && AotManager.Supported)
+        // Precompiled native code for the runtime and the engine (published by CI): much faster startup than
+        // JIT-compiling everything on the phone. Asked once per engine unless set to always/never. Never fatal.
+        var useAot = false;
+        if (AotManager.Supported && _settings.AotMode != AotMode.Never)
         {
             try
             {
-                if (runtimes.GetInstalledVersion(runtimeInfo.Major) is { } rtVer)
-                    await aot.EnsureAsync(aot.RuntimePackUrl(rtVer), Path.Combine(runtimeDir, "lib"), "среда .NET", progress, ct);
-                var engineUrl = engine.Source == EngineSource.Official
-                    ? aot.OfficialEnginePackUrl(engineVersion)
-                    : aot.PatchedEnginePackUrl(engineVersion);
-                await aot.EnsureAsync(engineUrl, engine.Dir, "движок", progress, ct);
+                useAot = await PrepareAotAsync(runtimes, runtimeInfo.Major, runtimeDir, engine, engineVersion, askAot,
+                    progress, ct);
             }
             catch (Exception e) when (e is not System.OperationCanceledException)
             {
@@ -163,7 +160,71 @@ public sealed class Connector
         await File.WriteAllTextAsync(specPath, JsonSerializer.Serialize(spec), ct);
 
         var config = string.Join("\n", runtimeInfo.ConfigProperties.Select(kv => $"{kv.Key}={kv.Value}"));
-        return new GameLaunch(specPath, runtimeDir, config, runtimeInfo.Major, _settings.UseAot);
+        return new GameLaunch(specPath, runtimeDir, config, runtimeInfo.Major, useAot);
+    }
+
+    /// <returns>Whether the game should run with precompiled code.</returns>
+    private async Task<bool> PrepareAotAsync(RuntimeManager runtimes, int major, string runtimeDir, ResolvedEngine engine,
+        string engineVersion, Func<string, long, Task<AotChoice>> askAot, IProgress<DownloadProgress> progress,
+        CancellationToken ct)
+    {
+        var aot = new AotManager(_http, _settings.EngineReleaseBase);
+        var engineUrl = engine.Source == EngineSource.Official
+            ? aot.OfficialEnginePackUrl(engineVersion)
+            : aot.PatchedEnginePackUrl(engineVersion);
+        var runtimeUrl = runtimes.GetInstalledVersion(major) is { } rtVer ? aot.RuntimePackUrl(rtVer) : null;
+        var runtimeLib = Path.Combine(runtimeDir, "lib");
+
+        // Already precompiled earlier: just use it.
+        if (AotManager.IsInstalled(engineUrl, engine.Dir))
+        {
+            if (runtimeUrl != null)
+                await aot.EnsureAsync(runtimeUrl, runtimeLib, "среда .NET", progress, ct);
+            return true;
+        }
+
+        var key = LauncherSettings.AotKey(engine.Source, engineVersion);
+        if (_settings.AotMode == AotMode.Ask && _settings.AotDecisions.TryGetValue(key, out var decided) && !decided)
+            return false;
+
+        progress.Report(new DownloadProgress("Проверка предкомпиляции", 0, 0));
+        var engineSize = await aot.GetSizeAsync(engineUrl, ct);
+        if (engineSize == null)
+            return false; // Nothing published for this engine: nothing to offer.
+
+        if (_settings.AotMode == AotMode.Ask && !_settings.AotDecisions.ContainsKey(key))
+        {
+            long total = engineSize.Value;
+            if (runtimeUrl != null && !AotManager.IsInstalled(runtimeUrl, runtimeLib))
+                total += await aot.GetSizeAsync(runtimeUrl, ct) ?? 0;
+
+            var label = (engine.Source == EngineSource.Official ? "официальном движке " : "движке ")
+                        + EngineManager.NormalizeVersion(engineVersion);
+            var choice = await askAot(label, total);
+            switch (choice)
+            {
+                case AotChoice.Yes:
+                    _settings.AotDecisions[key] = true;
+                    break;
+                case AotChoice.No:
+                    _settings.AotDecisions[key] = false;
+                    break;
+                case AotChoice.AlwaysYes:
+                    _settings.AotMode = AotMode.Always;
+                    break;
+                case AotChoice.AlwaysNo:
+                    _settings.AotMode = AotMode.Never;
+                    break;
+            }
+
+            _settings.Save(_filesDir);
+            if (choice is AotChoice.No or AotChoice.AlwaysNo)
+                return false;
+        }
+
+        if (runtimeUrl != null)
+            await aot.EnsureAsync(runtimeUrl, runtimeLib, "среда .NET", progress, ct);
+        return await aot.EnsureAsync(engineUrl, engine.Dir, "предкомпиляция движка", progress, ct) > 0;
     }
 }
 
