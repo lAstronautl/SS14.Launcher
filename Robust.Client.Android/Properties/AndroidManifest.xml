@@ -20,7 +20,7 @@
                   android:configChanges="orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|smallestScreenSize|density" />
         <!-- Shares the collected game log as a file (see Launcher/GameLogCollector.cs). -->
         <provider android:name="robust.android.LogProvider"
-                  android:authorities="com.starhorizon.launcher.logs"
+                  android:authorities="com.pdastation14.launcher.logs"
                   android:exported="false"
                   android:grantUriPermissions="true" />
     </application>

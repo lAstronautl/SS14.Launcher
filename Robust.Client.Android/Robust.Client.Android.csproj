@@ -16,10 +16,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplicationId>com.starhorizon.launcher</ApplicationId>
-    <ApplicationTitle>StarHorizon</ApplicationTitle>
-    <ApplicationVersion>15</ApplicationVersion>
-    <ApplicationDisplayVersion>0.3.1</ApplicationDisplayVersion>
+    <ApplicationId>com.pdastation14.launcher</ApplicationId>
+    <ApplicationTitle>PDAStation14</ApplicationTitle>
+    <ApplicationVersion>16</ApplicationVersion>
+    <ApplicationDisplayVersion>0.4.0</ApplicationDisplayVersion>
     <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <RootNamespace>Robust.Client.Android</RootNamespace>

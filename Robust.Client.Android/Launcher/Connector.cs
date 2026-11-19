@@ -134,7 +134,8 @@ public sealed class Connector
         bundle.Save(bundlePath);
 
         var username = login?.Username ?? (string.IsNullOrWhiteSpace(_settings.GuestName) ? null : _settings.GuestName);
-        var uiScale = _settings.UiScale > 0 ? _settings.UiScale : defaultUiScale;
+        // Density-based default; "Масштаб UI" in the game settings (GameCVars, appended later) overrides it.
+        var uiScale = defaultUiScale;
         var cvars = new List<string>(CompatShims.AndroidCVars)
         {
             $"display.uiScale={uiScale.ToString(System.Globalization.CultureInfo.InvariantCulture)}",

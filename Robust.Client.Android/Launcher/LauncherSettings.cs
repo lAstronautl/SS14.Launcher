@@ -15,8 +15,9 @@ public sealed class LauncherSettings
     public HashSet<string> TrustedServers { get; set; } = new();
     public string HubUrl { get; set; } = ServerApi.DefaultHubUrl;
     public string EngineReleaseBase { get; set; } = EngineManager.DefaultReleaseBase;
-    /// <summary>0 = automatic (from screen density).</summary>
-    public float UiScale { get; set; }
+    public string DiscordUrl { get; set; } = "https://discord.ss14.io/";
+    public string WebsiteUrl { get; set; } = "https://spacestation14.com";
+    public string NewsFeedUrl { get; set; } = "https://spacestation14.com/post/index.xml";
     public bool TouchControls { get; set; } = true;
     public int TouchOpacity { get; set; } = 60;
     public float TouchScale { get; set; } = 1f;

@@ -20,7 +20,7 @@ internal static class GameLogCollector
     private static readonly Regex Capability = new(@"clyde\.ogl:\s+\w+: (True|False|true|false)\s*$", RegexOptions.Compiled);
 
     private static readonly string[] SystemCrashMarkers =
-        { "Fatal signal", "lowmemorykiller", "lmkd", "Process com.starhorizon.launcher:game", "has died", "Killing" };
+        { "Fatal signal", "lowmemorykiller", "lmkd", "Process com.pdastation14.launcher:game", "has died", "Killing" };
 
     /// <summary>Whole logcat dump of this app (only our UID is visible to us).</summary>
     public static string ReadRawLogcat()
@@ -188,6 +188,6 @@ internal static class GameLogCollector
     public static global::Android.Net.Uri ExportForSharing(global::Android.Content.Context ctx, string text)
     {
         File.WriteAllText(Path.Combine(ctx.CacheDir!.AbsolutePath, "game-log.txt"), text);
-        return global::Android.Net.Uri.Parse("content://com.starhorizon.launcher.logs/game-log.txt")!;
+        return global::Android.Net.Uri.Parse("content://com.pdastation14.launcher.logs/game-log.txt")!;
     }
 }
