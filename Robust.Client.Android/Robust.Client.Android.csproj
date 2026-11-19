@@ -18,8 +18,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationId>com.pdastation14.launcher</ApplicationId>
     <ApplicationTitle>PDAStation14</ApplicationTitle>
-    <ApplicationVersion>20</ApplicationVersion>
-    <ApplicationDisplayVersion>0.6.1</ApplicationDisplayVersion>
+    <ApplicationVersion>21</ApplicationVersion>
+    <ApplicationDisplayVersion>0.6.2</ApplicationDisplayVersion>
     <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <RootNamespace>Robust.Client.Android</RootNamespace>

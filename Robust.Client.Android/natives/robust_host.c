@@ -299,6 +299,12 @@ __attribute__((visibility("default"))) int SDL_main(int argc, char **argv)
             }
         }
     }
+    // Colors: Clyde treats the window as an sRGB framebuffer (desktop GL enables GL_FRAMEBUFFER_SRGB), but for
+    // GLES it asks SDL for a non-sRGB surface, and GLES has no switch to encode on write. Linear values then go to
+    // the screen as is and the game looks too dark and contrasty. An sRGB EGL surface (EGL_KHR_gl_colorspace)
+    // makes the GPU encode like desktop GL does. Works for every engine version, ours and official.
+    setenv("SDL_OPENGL_FORCE_SRGB_FRAMEBUFFER", "1", 0);
+
     if (!getenv("ALSOFT_CONF"))
         setenv("ALSOFT_CONF", "/dev/null", 1);
 
