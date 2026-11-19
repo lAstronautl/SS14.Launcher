@@ -119,94 +119,6 @@ public sealed class MainActivity : Activity
 
         ShowTab(_settings.Favorites.Count == 0 ? Tab.Servers : Tab.Home);
         ShowLastCrashIfAny();
-        if (_settings.AutoUpdate)
-            _ = CheckForUpdateAsync(manual: false);
-    }
-
-    // ------------------------------------------------------------------ Self-update
-
-    private bool _updating;
-
-    private async Task CheckForUpdateAsync(bool manual)
-    {
-        if (_updating)
-            return;
-        if (manual)
-            Toast.MakeText(this, Loc.Get("android-update-checking"), ToastLength.Short)!.Show();
-
-        var current = Updater.Current(this).ToString();
-        try
-        {
-            var update = await Updater.CheckAsync(Http, this);
-            RunOnUiThread(() =>
-            {
-                if (update == null)
-                {
-                    if (manual)
-                        Toast.MakeText(this, Loc.Get("android-update-none", ("current", current)), ToastLength.Short)!.Show();
-                    return;
-                }
-
-                Ui.Dialog(this, Loc.Get("android-update-title"))
-                    .SetMessage(Loc.Get("android-update-message", ("version", update.Version.ToString()), ("current", current)))!
-                    .SetPositiveButton(Loc.Get("android-update-install"), (_, _) => InstallUpdate(update))!
-                    .SetNegativeButton(Loc.Get("android-update-later"), (_, _) => { })!
-                    .Show();
-            });
-        }
-        catch (Exception e)
-        {
-            if (manual)
-                RunOnUiThread(() =>
-                    Toast.MakeText(this, Loc.Get("android-update-error", ("error", e.Message)), ToastLength.Long)!.Show());
-        }
-    }
-
-    private void InstallUpdate(Updater.Update update)
-    {
-        // Android 8+: the player has to allow installing apps from the launcher once.
-        if (OperatingSystem.IsAndroidVersionAtLeast(26) && !PackageManager!.CanRequestPackageInstalls())
-        {
-            Toast.MakeText(this, Loc.Get("android-update-permission"), ToastLength.Long)!.Show();
-            StartActivity(new Intent(global::Android.Provider.Settings.ActionManageUnknownAppSources,
-                global::Android.Net.Uri.Parse("package:" + PackageName)));
-            return;
-        }
-
-        _updating = true;
-        var label = Ui.Label(this, Loc.Get("android-update-downloading", ("progress", "0%")), 15);
-        var box = Ui.Column(this, 20);
-        box.AddView(label);
-        var bar = new ProgressBar(this, null, global::Android.Resource.Attribute.ProgressBarStyleHorizontal) { Max = 1000 };
-        box.AddView(bar, Ui.Fill(0, 10, this));
-        var dialog = Ui.Dialog(this, Loc.Get("android-update-title")).SetView(box)!.SetCancelable(false)!.Show()!;
-
-        var progress = new Progress<(long Done, long Total)>(p =>
-        {
-            if (p.Total > 0)
-            {
-                bar.Progress = (int)(p.Done * 1000 / p.Total);
-                label.Text = Loc.Get("android-update-downloading", ("progress", $"{p.Done * 100 / p.Total}%"));
-            }
-        });
-
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await Updater.InstallAsync(Http, this, update, progress);
-            }
-            catch (Exception e)
-            {
-                RunOnUiThread(() =>
-                    Toast.MakeText(this, Loc.Get("android-update-failed", ("error", e.Message)), ToastLength.Long)!.Show());
-            }
-            finally
-            {
-                _updating = false;
-                RunOnUiThread(() => dialog.Dismiss());
-            }
-        });
     }
 
     protected override void OnResume()
@@ -1176,17 +1088,6 @@ public sealed class MainActivity : Activity
             Toast.MakeText(this, n > 0 ? $"Сброшено ответов: {n}. Лаунчер спросит снова." : "Ответов не было.",
                 ToastLength.Short)!.Show();
         }), Ui.Fill(0, 8, this));
-
-        var updates = Section(col, Loc.Get("android-update-section"));
-        var auto = Ui.Check(this, Loc.Get("android-update-auto"), _settings.AutoUpdate);
-        auto.CheckedChange += (_, e) =>
-        {
-            _settings.AutoUpdate = e.IsChecked;
-            _settings.Save(FilesPath);
-        };
-        updates.AddView(auto);
-        updates.AddView(Ui.Button(this, Loc.Get("android-update-check"), () => _ = CheckForUpdateAsync(manual: true)),
-            Ui.Fill(0, 6, this));
 
         var data = Section(col, Loc.Get("android-data"));
         data.AddView(Ui.Button(this, Loc.Get("tab-options-clear-engines"), () =>
