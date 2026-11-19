@@ -180,7 +180,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IErrorOverlayOw
     private async Task CheckLauncherUpdate()
     {
         // await Task.Delay(1000);
-        if (!ConfigConstants.DoVersionCheck)
+        if (!ConfigConstants.DoVersionCheck || !_cfg.GetCVar(CVars.CheckLauncherUpdates))
         {
             return;
         }

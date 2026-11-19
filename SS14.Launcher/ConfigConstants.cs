@@ -1,5 +1,7 @@
 using Serilog;
 using System;
+using Splat;
+using SS14.Launcher.Models.Data;
 using SS14.Launcher.Utility;
 
 namespace SS14.Launcher;
@@ -8,14 +10,31 @@ public static class ConfigConstants
 {
     public static readonly bool DoVersionCheck = true;
 
+    // AstroLauncher: these values are configurable in the "Astro" tab. Limits keep them in a sane range.
+    public static readonly (int Min, int Max) ServerStatusTimeoutRange = (1, 60);
+    public static readonly (int Min, int Max) RobustManifestCacheRange = (0, 1440);
+    public static readonly (int Min, int Max) TokenRefreshThresholdRange = (1, 29);
+    public static readonly (int Min, int Max) TokenRefreshIntervalRange = (1, 14);
+    public static readonly (int Min, int Max) LoaderContentPoolRange = (0, 64);
+
+    internal static int AstroCVar(CVarDef<int> def, (int Min, int Max) range)
+    {
+        var cfg = Locator.Current.GetService<DataManager>();
+        var value = cfg?.GetCVar(def) ?? def.DefaultValue;
+        return Math.Clamp(value, range.Min, range.Max);
+    }
+
     // Refresh login tokens if they're within <this much> of expiry.
-    public static readonly TimeSpan TokenRefreshThreshold = TimeSpan.FromDays(15);
+    public static TimeSpan TokenRefreshThreshold
+        => TimeSpan.FromDays(AstroCVar(CVars.TokenRefreshThresholdDays, TokenRefreshThresholdRange));
 
     // If the user leaves the launcher running for absolute ages, this is how often we'll update their login tokens.
-    public static readonly TimeSpan TokenRefreshInterval = TimeSpan.FromDays(7);
+    public static TimeSpan TokenRefreshInterval
+        => TimeSpan.FromDays(AstroCVar(CVars.TokenRefreshIntervalDays, TokenRefreshIntervalRange));
 
     // The amount of time before a server is considered timed out for status checks.
-    public static readonly TimeSpan ServerStatusTimeout = TimeSpan.FromSeconds(5);
+    public static TimeSpan ServerStatusTimeout
+        => TimeSpan.FromSeconds(AstroCVar(CVars.ServerStatusTimeoutSeconds, ServerStatusTimeoutRange));
 
     // Check the command queue this often.
     public static readonly TimeSpan CommandQueueCheckInterval = TimeSpan.FromSeconds(1);
@@ -61,7 +80,8 @@ public static class ConfigConstants
 
     // How long to keep cached copies of Robust manifests.
     // TODO: Take this from Cache-Control header responses instead.
-    public static readonly TimeSpan RobustManifestCacheTime = TimeSpan.FromMinutes(15);
+    public static TimeSpan RobustManifestCacheTime
+        => TimeSpan.FromMinutes(AstroCVar(CVars.RobustManifestCacheMinutes, RobustManifestCacheRange));
 
     public static readonly UrlFallbackSet UrlLauncherInfo = LauncherDataBaseUrl + "info.json";
     public static readonly UrlFallbackSet UrlAssetsBase = LauncherDataBaseUrl + "assets/";

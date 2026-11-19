@@ -5,7 +5,7 @@ using SS14.Launcher.Utility;
 
 namespace SS14.Launcher.ViewModels.MainWindowTabs;
 
-public sealed class DevelopmentTabViewModel : MainWindowTabViewModel
+public sealed partial class DevelopmentTabViewModel : MainWindowTabViewModel
 {
     private readonly LocalizationManager _loc = LocalizationManager.Instance;
     private readonly DataManager _cfg = Locator.Current.GetRequiredService<DataManager>();

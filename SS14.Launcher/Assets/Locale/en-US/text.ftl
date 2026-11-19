@@ -360,6 +360,50 @@ tab-development-disable-signing-desc = { "[" }DEV ONLY] Disables verification of
 tab-development-enable-engine-override = Enable engine override
 tab-development-enable-engine-override-desc = Override path to load engine zips from (release/ in RobustToolbox)
 
+## AstroLauncher settings on the development tab
+
+tab-development-astro-section-engine = Engine
+tab-development-astro-section-storage = Storage
+tab-development-astro-max-versions = Game versions to keep (total)
+tab-development-astro-max-versions-desc = How many downloaded game versions are kept on disk across all servers. Lower saves disk space, higher means fewer re-downloads when switching servers. Default: 15.
+tab-development-astro-max-fork-versions = Versions to keep per server (fork)
+tab-development-astro-max-fork-versions-desc = How many versions of the same server's game are kept. Default: 3.
+tab-development-astro-download-keep-hours = Keep interrupted downloads (hours)
+tab-development-astro-download-keep-hours-desc = An interrupted download can be resumed instead of starting over during this time. Default: 168 (a week).
+tab-development-astro-section-network = Network
+tab-development-astro-server-timeout = Server response timeout (seconds)
+tab-development-astro-server-timeout-desc = How long to wait for a server in the server list. Raise it if servers disappear from the list on a slow connection. Default: 5.
+tab-development-astro-manifest-cache = Engine version list cache (minutes)
+tab-development-astro-manifest-cache-desc = How long the list of engine versions is cached. 0 = always fetch a fresh one. Default: 15.
+tab-development-astro-check-updates = Check for launcher updates
+tab-development-astro-check-updates-desc = If disabled, the launcher never blocks itself with the "launcher out of date" screen. Applied on restart.
+tab-development-astro-section-accounts = Accounts
+tab-development-astro-token-threshold = Refresh login token when it expires within (days)
+tab-development-astro-token-threshold-desc = Saved accounts stay logged in by refreshing their tokens. Default: 15.
+tab-development-astro-token-interval = Token refresh interval while the launcher is open (days)
+tab-development-astro-token-interval-desc = Applied on restart. Default: 7.
+tab-development-astro-section-game = Game performance
+tab-development-astro-server-gc = Always use the server garbage collector
+tab-development-astro-server-gc-desc = Normally only enabled when the server asks for it. May reduce stutters on CPUs with many cores, uses more memory.
+tab-development-astro-pool-size = Content database connections
+tab-development-astro-pool-size-desc = How many connections the game loader opens to the local game files database. 0 = automatic (CPU core count).
+tab-development-astro-section-warnings = Startup warnings
+tab-development-astro-warnings-desc = Checked = already seen, won't be shown. Uncheck to see the warning again on the next launch (if it applies to your computer).
+tab-development-astro-warning-early-access = Early access ("Heads up!")
+tab-development-astro-warning-epilepsy = Photosensitivity (epilepsy) warning
+tab-development-astro-warning-intel = Intel 13th/14th gen CPU degradation
+tab-development-astro-warning-rosetta = Running under Rosetta 2 (macOS)
+tab-development-astro-warning-background-fetch = Question: download updates in the background
+tab-development-astro-wine-warning = Wine warning (Windows launcher running under Wine)
+tab-development-astro-hide-all-warnings = Hide all
+tab-development-astro-show-all-warnings = Show all again
+tab-development-astro-section-data = Data folder
+tab-development-astro-profile = Profile:
+tab-development-astro-profile-desc = Accounts, settings and downloaded game versions are stored here. Another profile can be used with the SS14_LAUNCHER_APPDATA_NAME environment variable.
+tab-development-astro-open-data = Open data folder
+tab-development-astro-reset = Reset these settings to defaults
+tab-development-astro-reset-desc = Resets storage, network, account and game performance settings. Accounts, warnings and engine options are not touched.
+
 ## Strings for the "home" tab
 
 tab-home-title = Home

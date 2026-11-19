@@ -11,19 +11,121 @@
     <mainWindowTabs:DevelopmentTabViewModel />
   </Design.DataContext>
 
-  <StackPanel Orientation="Vertical">
-    <CheckBox VerticalAlignment="Center" Margin="4" IsChecked="{Binding DisableSigning}" Content="{loc:Loc tab-development-disable-signing}" />
-    <TextBlock VerticalAlignment="Center" TextWrapping="Wrap"
-               Text="{loc:Loc tab-development-disable-signing-desc}"
-               Margin="8" />
+  <UserControl.Styles>
+    <Style Selector="TextBlock.AstroHeader">
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="FontSize" Value="15" />
+      <Setter Property="Margin" Value="4 16 4 4" />
+    </Style>
+    <Style Selector="TextBlock.AstroDesc">
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Opacity" Value="0.75" />
+      <Setter Property="Margin" Value="8 0 8 6" />
+    </Style>
+    <Style Selector="NumericUpDown">
+      <Setter Property="MinWidth" Value="130" />
+      <Setter Property="Margin" Value="4" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+  </UserControl.Styles>
 
-    <Grid ColumnDefinitions="Auto,*">
-      <CheckBox VerticalAlignment="Center" Margin="4" IsChecked="{Binding EngineOverrideEnabled}" Content="{loc:Loc tab-development-enable-engine-override}" />
-      <TextBox Grid.Column="1" Text="{Binding EngineOverridePath}" />
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Orientation="Vertical" Margin="0 0 8 8">
 
-    </Grid>
-    <TextBlock VerticalAlignment="Center" TextWrapping="Wrap"
-               Text="{loc:Loc tab-development-enable-engine-override-desc}"
-               Margin="8" />
-  </StackPanel>
+      <!-- ===== Engine (original development options) ===== -->
+      <TextBlock Classes="AstroHeader" Text="{loc:Loc tab-development-astro-section-engine}" />
+
+      <CheckBox VerticalAlignment="Center" Margin="4" IsChecked="{Binding DisableSigning}" Content="{loc:Loc tab-development-disable-signing}" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-disable-signing-desc}" />
+
+      <Grid ColumnDefinitions="Auto,*">
+        <CheckBox VerticalAlignment="Center" Margin="4" IsChecked="{Binding EngineOverrideEnabled}" Content="{loc:Loc tab-development-enable-engine-override}" />
+        <TextBox Grid.Column="1" Text="{Binding EngineOverridePath}" />
+      </Grid>
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-enable-engine-override-desc}" />
+
+      <!-- ===== Storage ===== -->
+      <TextBlock Classes="AstroHeader" Text="{loc:Loc tab-development-astro-section-storage}" />
+
+      <TextBlock Margin="4 4 4 0" Text="{loc:Loc tab-development-astro-max-versions}" />
+      <NumericUpDown Value="{Binding MaxVersionsToKeep}" Minimum="1" Maximum="500" Increment="1" FormatString="0" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-max-versions-desc}" />
+
+      <TextBlock Margin="4 4 4 0" Text="{loc:Loc tab-development-astro-max-fork-versions}" />
+      <NumericUpDown Value="{Binding MaxForkVersionsToKeep}" Minimum="1" Maximum="100" Increment="1" FormatString="0" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-max-fork-versions-desc}" />
+
+      <TextBlock Margin="4 4 4 0" Text="{loc:Loc tab-development-astro-download-keep-hours}" />
+      <NumericUpDown Value="{Binding InterruptibleDownloadKeepHours}" Minimum="0" Maximum="8760" Increment="1" FormatString="0" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-download-keep-hours-desc}" />
+
+      <!-- ===== Network ===== -->
+      <TextBlock Classes="AstroHeader" Text="{loc:Loc tab-development-astro-section-network}" />
+
+      <TextBlock Margin="4 4 4 0" Text="{loc:Loc tab-development-astro-server-timeout}" />
+      <NumericUpDown Value="{Binding ServerStatusTimeoutSeconds}" Minimum="1" Maximum="60" Increment="1" FormatString="0" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-server-timeout-desc}" />
+
+      <TextBlock Margin="4 4 4 0" Text="{loc:Loc tab-development-astro-manifest-cache}" />
+      <NumericUpDown Value="{Binding RobustManifestCacheMinutes}" Minimum="0" Maximum="1440" Increment="1" FormatString="0" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-manifest-cache-desc}" />
+
+      <CheckBox Margin="4" IsChecked="{Binding CheckLauncherUpdates}" Content="{loc:Loc tab-development-astro-check-updates}" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-check-updates-desc}" />
+
+      <!-- ===== Accounts ===== -->
+      <TextBlock Classes="AstroHeader" Text="{loc:Loc tab-development-astro-section-accounts}" />
+
+      <TextBlock Margin="4 4 4 0" Text="{loc:Loc tab-development-astro-token-threshold}" />
+      <NumericUpDown Value="{Binding TokenRefreshThresholdDays}" Minimum="1" Maximum="29" Increment="1" FormatString="0" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-token-threshold-desc}" />
+
+      <TextBlock Margin="4 4 4 0" Text="{loc:Loc tab-development-astro-token-interval}" />
+      <NumericUpDown Value="{Binding TokenRefreshIntervalDays}" Minimum="1" Maximum="14" Increment="1" FormatString="0" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-token-interval-desc}" />
+
+      <!-- ===== Game performance ===== -->
+      <TextBlock Classes="AstroHeader" Text="{loc:Loc tab-development-astro-section-game}" />
+
+      <CheckBox Margin="4" IsChecked="{Binding ForceServerGC}" Content="{loc:Loc tab-development-astro-server-gc}" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-server-gc-desc}" />
+
+      <TextBlock Margin="4 4 4 0" Text="{loc:Loc tab-development-astro-pool-size}" />
+      <NumericUpDown Value="{Binding LoaderContentPoolSize}" Minimum="0" Maximum="64" Increment="1" FormatString="0" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-pool-size-desc}" />
+
+      <!-- ===== Warnings ===== -->
+      <TextBlock Classes="AstroHeader" Text="{loc:Loc tab-development-astro-section-warnings}" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-warnings-desc}" />
+
+      <ItemsControl ItemsSource="{Binding Warnings}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate DataType="mainWindowTabs:AstroWarningToggleViewModel">
+            <CheckBox Margin="4 2" IsChecked="{Binding Hidden}" Content="{Binding Title}" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <CheckBox Margin="4 2" IsChecked="{Binding WineWarningShown}" Content="{loc:Loc tab-development-astro-wine-warning}" />
+
+      <StackPanel Orientation="Horizontal">
+        <Button Margin="4" Content="{loc:Loc tab-development-astro-hide-all-warnings}" Command="{Binding HideAllWarnings}" />
+        <Button Margin="4" Content="{loc:Loc tab-development-astro-show-all-warnings}" Command="{Binding ShowAllWarnings}" />
+      </StackPanel>
+
+      <!-- ===== Data folder ===== -->
+      <TextBlock Classes="AstroHeader" Text="{loc:Loc tab-development-astro-section-data}" />
+
+      <TextBlock Margin="4" TextWrapping="Wrap">
+        <Run Text="{loc:Loc tab-development-astro-profile}" />
+        <Run Text="{Binding ProfileName, Mode=OneWay}" FontWeight="Bold" />
+      </TextBlock>
+      <SelectableTextBlock Margin="4" TextWrapping="Wrap" Text="{Binding DataDirectory, Mode=OneWay}" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-profile-desc}" />
+      <Button Margin="4" HorizontalAlignment="Left" Content="{loc:Loc tab-development-astro-open-data}" Command="{Binding OpenDataDirectory}" />
+
+      <!-- ===== Reset ===== -->
+      <Button Margin="4 20 4 4" HorizontalAlignment="Left" Content="{loc:Loc tab-development-astro-reset}" Command="{Binding ResetAll}" />
+      <TextBlock Classes="AstroDesc" Text="{loc:Loc tab-development-astro-reset-desc}" />
+    </StackPanel>
+  </ScrollViewer>
 </UserControl>

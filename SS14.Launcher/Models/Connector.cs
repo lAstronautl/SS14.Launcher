@@ -566,8 +566,12 @@ public partial class Connector : ObservableObject
         EnvVar("DOTNET_TieredPGO", "1");
         EnvVar("DOTNET_ReadyToRun", "0");
 
-        if (launchInfo.ServerGC)
+        if (launchInfo.ServerGC || _cfg.GetCVar(CVars.ForceServerGC))
             EnvVar("DOTNET_gcServer", "1");
+
+        var poolSize = ConfigConstants.AstroCVar(CVars.LoaderContentPoolSize, ConfigConstants.LoaderContentPoolRange);
+        if (poolSize > 0)
+            EnvVar("SS14_LOADER_CONTENT_POOL_SIZE", poolSize.ToString());
 
         ConfigureMultiWindow(launchInfo, startInfo);
 

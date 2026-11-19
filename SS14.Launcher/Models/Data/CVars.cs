@@ -123,6 +123,43 @@ public static class CVars
     /// properly get their existing installations cleared.
     /// </remarks>
     public static readonly CVarDef<int> CurrentArchitecture = CVarDef.Create("CurrentArchitecture", (int) Architecture.X64);
+
+    // ===== AstroLauncher settings (editable in the "Astro" tab) =====
+
+    /// <summary>
+    /// How long to wait for a server's status before giving up, in seconds.
+    /// </summary>
+    public static readonly CVarDef<int> ServerStatusTimeoutSeconds = CVarDef.Create("ServerStatusTimeoutSeconds", 5);
+
+    /// <summary>
+    /// How long the engine builds manifest is cached, in minutes.
+    /// </summary>
+    public static readonly CVarDef<int> RobustManifestCacheMinutes = CVarDef.Create("RobustManifestCacheMinutes", 15);
+
+    /// <summary>
+    /// Refresh login tokens if they're within this many days of expiry.
+    /// </summary>
+    public static readonly CVarDef<int> TokenRefreshThresholdDays = CVarDef.Create("TokenRefreshThresholdDays", 15);
+
+    /// <summary>
+    /// How often to refresh login tokens while the launcher stays open, in days. Applied on restart.
+    /// </summary>
+    public static readonly CVarDef<int> TokenRefreshIntervalDays = CVarDef.Create("TokenRefreshIntervalDays", 7);
+
+    /// <summary>
+    /// Whether to check if the launcher is outdated (and block it with the "out of date" overlay).
+    /// </summary>
+    public static readonly CVarDef<bool> CheckLauncherUpdates = CVarDef.Create("CheckLauncherUpdates", true);
+
+    /// <summary>
+    /// Always run the game with the .NET server garbage collector, not only when the server asks for it.
+    /// </summary>
+    public static readonly CVarDef<bool> ForceServerGC = CVarDef.Create("ForceServerGC", false);
+
+    /// <summary>
+    /// Amount of content database connections the loader opens. 0 means automatic (CPU core count).
+    /// </summary>
+    public static readonly CVarDef<int> LoaderContentPoolSize = CVarDef.Create("LoaderContentPoolSize", 0);
 }
 
 /// <summary>
