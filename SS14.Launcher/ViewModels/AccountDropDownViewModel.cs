@@ -53,16 +53,21 @@ public partial class AccountDropDownViewModel : ViewModelBase
         {
             OnPropertyChanged(nameof(LogoutText));
             OnPropertyChanged(nameof(AccountSwitchVisible));
+
+            Accounts.SetItems(GetInactiveAccounts());
         });
     }
 
     private IEnumerable<AvailableAccountViewModel> GetInactiveAccounts()
     {
-        return _loginMgr.Logins
-            .Items
-            .Where(a => a != _loginMgr.ActiveAccount)
-            .Select(a => new AvailableAccountViewModel(a));
+        // Keep the same order as the Ctrl+1..9 quick switch hotkeys.
+        return _loginMgr.OrderedAccounts
+            .Select((a, i) => (a, i))
+            .Where(t => t.a != _loginMgr.ActiveAccount)
+            .Select(t => new AvailableAccountViewModel(t.a, t.i));
     }
+
+    public string HotkeyHintText => _loc.GetString("account-drop-down-hotkey-hint");
 
     public string LoginText => _loginMgr.ActiveAccount?.Username ??
                                (EnableMultiAccounts ? _loc.GetString("account-drop-down-none-selected") : _loc.GetString("account-drop-down-not-logged-in"));
@@ -84,10 +89,17 @@ public partial class AccountDropDownViewModel : ViewModelBase
     {
         IsDropDownOpen = false;
 
-        if (_loginMgr.ActiveAccount != null)
+        if (_loginMgr.ActiveAccount is { } active)
         {
-            await _authApi.LogoutTokenAsync(_loginMgr.ActiveAccount.LoginInfo.Token.Token);
-            _cfg.RemoveLogin(_loginMgr.ActiveAccount.LoginInfo);
+            await _authApi.LogoutTokenAsync(active.LoginInfo.Token.Token);
+            _cfg.RemoveLogin(active.LoginInfo);
+            _cfg.CommitConfig();
+
+            // AstroLauncher: immediately switch to another saved account, if there is one.
+            var next = _loginMgr.OrderedAccounts.FirstOrDefault(a => a.Status == AccountLoginStatus.Available)
+                       ?? _loginMgr.OrderedAccounts.FirstOrDefault();
+            if (next != null)
+                _mainVm.TrySwitchToAccount(next);
         }
     }
 
@@ -116,16 +128,22 @@ public sealed partial class AvailableAccountViewModel : ViewModelBase
 {
     [ObservableProperty] private LoggedInAccount _account;
 
+    /// <summary>
+    /// Index in <see cref="LoginManager.OrderedAccounts"/>, used to show the Ctrl+N hotkey.
+    /// </summary>
+    public int Index { get; }
+
     public string StatusText
-        => Account.Username + Account.Status switch
+        => (Index < 9 ? $"[{Index + 1}] " : "") + Account.Username + Account.Status switch
         {
             AccountLoginStatus.Available => "",
             AccountLoginStatus.Expired => " (!)",
             _ => " (?)",
         };
 
-    public AvailableAccountViewModel(LoggedInAccount account)
+    public AvailableAccountViewModel(LoggedInAccount account, int index)
     {
         _account = account;
+        Index = index;
     }
 }

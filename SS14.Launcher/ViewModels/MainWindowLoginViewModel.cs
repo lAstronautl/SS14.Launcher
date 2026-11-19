@@ -1,4 +1,6 @@
+using System;
 using System.Diagnostics;
+using SS14.Launcher.Localization;
 using Splat;
 using SS14.Launcher.Api;
 using SS14.Launcher.Models.Data;
@@ -41,6 +43,37 @@ public class MainWindowLoginViewModel : ViewModelBase
 
         _screen = default!;
         SwitchToLogin();
+
+        _loginMgr.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(LoginManager.ActiveAccount))
+            {
+                OnPropertyChanged(nameof(ReturnAccount));
+                OnPropertyChanged(nameof(CanReturnToAccount));
+                OnPropertyChanged(nameof(ReturnToAccountText));
+            }
+        };
+    }
+
+    /// <summary>
+    /// Set by <see cref="MainWindowViewModel"/>, performs a full account switch (including status checks).
+    /// </summary>
+    public Action<LoggedInAccount>? SwitchAccountCallback { get; set; }
+
+    /// <summary>
+    /// The account to go back to when the user opened "Add account" and changed their mind.
+    /// </summary>
+    public LoggedInAccount? ReturnAccount => _loginMgr.ActiveAccount == null ? _loginMgr.PreviousAccount : null;
+
+    public bool CanReturnToAccount => ReturnAccount != null;
+
+    public string ReturnToAccountText => LocalizationManager.Instance.GetString(
+        "login-return-to-account", ("name", ReturnAccount?.Username ?? ""));
+
+    public void ReturnToAccount()
+    {
+        if (ReturnAccount is { } account)
+            SwitchAccountCallback?.Invoke(account);
     }
 
     public void SwitchToLogin()

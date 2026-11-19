@@ -135,12 +135,8 @@ public sealed class DataManager : ObservableObject
 
     public bool HasCustomHubs => Hubs.Count > 0;
 
-    public bool ActuallyMultiAccounts =>
-#if DEBUG
-        true;
-#else
-            GetCVar(CVars.MultiAccounts);
-#endif
+    // AstroLauncher: multiple accounts are always enabled for quick switching.
+    public bool ActuallyMultiAccounts => true;
 
     public void AddFavoriteServer(FavoriteServer server)
     {

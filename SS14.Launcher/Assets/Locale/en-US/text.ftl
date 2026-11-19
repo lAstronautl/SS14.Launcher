@@ -7,6 +7,7 @@ account-drop-down-log-out-of = Log out of { $name }
 account-drop-down-switch-account = Switch account:
 account-drop-down-select-account = Select account:
 account-drop-down-add-account = Add account
+account-drop-down-hotkey-hint = Ctrl+1…9 — quick switch
 
 ## Localization for the "add favorite server" dialog window
 
@@ -137,6 +138,7 @@ login-forgot-error = Error
 
 ## Strings for the "login" view on login
 
+login-return-to-account = Back to { $name }
 login-login-title = Log in
 login-login-auth-server-changed = Auth server has changed
 login-login-username-watermark = Username or email

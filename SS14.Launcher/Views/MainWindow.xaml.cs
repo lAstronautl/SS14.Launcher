@@ -27,6 +27,7 @@ public partial class MainWindow : Window
         AddHandler(DragDrop.DragLeaveEvent, DragLeave);
         AddHandler(DragDrop.DragOverEvent, DragOver);
         AddHandler(DragDrop.DropEvent, Drop);
+        AddHandler(KeyDownEvent, OnQuickSwitchKeyDown, RoutingStrategies.Tunnel);
 
         _content = (MainWindowContent) Content!;
 
@@ -60,6 +61,23 @@ public partial class MainWindow : Window
         }
 
         base.OnDataContextChanged(e);
+    }
+
+    // AstroLauncher: Ctrl+1..9 switches between saved accounts.
+    private void OnQuickSwitchKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (_viewModel == null || (e.KeyModifiers & ~KeyModifiers.Shift) != KeyModifiers.Control)
+            return;
+
+        var index = e.Key switch
+        {
+            >= Key.D1 and <= Key.D9 => e.Key - Key.D1,
+            >= Key.NumPad1 and <= Key.NumPad9 => e.Key - Key.NumPad1,
+            _ => -1,
+        };
+
+        if (index >= 0 && _viewModel.QuickSwitchAccount(index))
+            e.Handled = true;
     }
 
     private unsafe void DarkMode()

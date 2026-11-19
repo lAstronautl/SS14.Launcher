@@ -21,6 +21,10 @@
 
       <Button Content="{loc:Loc tab-options-open-log-directory}" DockPanel.Dock="Left" HorizontalAlignment="Left"
               Command="{Binding OpenLogDirectory}" Margin="4" />
+
+      <Button Content="{Binding ReturnToAccountText}" DockPanel.Dock="Right" HorizontalAlignment="Right"
+              IsVisible="{Binding CanReturnToAccount}"
+              Command="{Binding ReturnToAccount}" Margin="4" />
     </DockPanel>
     <Panel Background="{DynamicResource ThemeStripebackEdgeBrush}" MinHeight="2" DockPanel.Dock="Bottom" />
 

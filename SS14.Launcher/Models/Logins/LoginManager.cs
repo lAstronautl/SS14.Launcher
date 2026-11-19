@@ -27,6 +27,7 @@ public sealed class LoginManager : ObservableObject
     private IDisposable? _timer;
 
     private Guid? _activeLoginId;
+    private Guid? _previousLoginId;
 
     private readonly IObservableCache<ActiveLoginData, Guid> _logins;
 
@@ -47,6 +48,9 @@ public sealed class LoginManager : ObservableObject
 
             if (_activeLoginId != value)
             {
+                if (_activeLoginId != null)
+                    _previousLoginId = _activeLoginId;
+
                 OnPropertyChanging();
                 _activeLoginId = value;
                 OnPropertyChanged();
@@ -64,6 +68,30 @@ public sealed class LoginManager : ObservableObject
     }
 
     public IObservableCache<LoggedInAccount, Guid> Logins { get; }
+
+    /// <summary>
+    /// The account that was active before the current one (if it is still logged in).
+    /// Used to return back from the "add account" screen.
+    /// </summary>
+    public LoggedInAccount? PreviousAccount
+    {
+        get
+        {
+            if (_previousLoginId is not { } id)
+                return null;
+
+            var lookup = _logins.Lookup(id);
+            return lookup.HasValue ? lookup.Value : null;
+        }
+    }
+
+    /// <summary>
+    /// All logged in accounts in a stable order (by username), used for quick switching hotkeys.
+    /// </summary>
+    public LoggedInAccount[] OrderedAccounts => Logins.Items
+        .OrderBy(a => a.Username, StringComparer.OrdinalIgnoreCase)
+        .ThenBy(a => a.UserId)
+        .ToArray();
 
     public LoginManager(DataManager cfg, AuthApi authApi)
     {

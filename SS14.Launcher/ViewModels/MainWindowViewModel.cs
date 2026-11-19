@@ -71,6 +71,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IErrorOverlayOw
 
         AccountDropDown = new AccountDropDownViewModel(this);
         LoginViewModel = new MainWindowLoginViewModel();
+        LoginViewModel.SwitchAccountCallback = TrySwitchToAccount;
 
         PropertyChanged += (_, e) =>
         {
@@ -218,6 +219,28 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IErrorOverlayOw
     public void SelectTabServers()
     {
         SelectedIndex = Tabs.IndexOf(ServersTab);
+    }
+
+    /// <summary>
+    /// AstroLauncher: quick switch to the N-th saved account (Ctrl+1..9 hotkeys).
+    /// </summary>
+    public bool QuickSwitchAccount(int index)
+    {
+        // Don't yank the account out from under an in-progress connection.
+        if (ConnectingVM != null || BusyTask != null)
+            return false;
+
+        var accounts = _loginMgr.OrderedAccounts;
+        if (index < 0 || index >= accounts.Length)
+            return false;
+
+        var account = accounts[index];
+        if (account == _loginMgr.ActiveAccount)
+            return true;
+
+        AccountDropDown.IsDropDownOpen = false;
+        TrySwitchToAccount(account);
+        return true;
     }
 
     public void TrySwitchToAccount(LoggedInAccount account)

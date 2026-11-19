@@ -89,6 +89,7 @@ account-drop-down-switch-account = Сменить аккаунт:
 account-drop-down-select-account = Выбрать аккаунт:
 # Strings for the drop-down window to manage your active account
 account-drop-down-add-account = Добавить аккаунт
+account-drop-down-hotkey-hint = Ctrl+1…9 — быстрая смена аккаунта
 # Localization for the "add favorite server" dialog window
 add-favorite-window-title = Добавить избранный сервер
 # Localization for the "add favorite server" dialog window
@@ -206,6 +207,7 @@ login-forgot-success-message = Ссылка для сброса была отп�
 # Strings for the "forgot password" view on login
 login-forgot-error = Ошибка
 # Strings for the "login" view on login
+login-return-to-account = Вернуться к { $name }
 login-login-title = Войти
 # Strings for the "login" view on login
 login-login-show-password = Показать пароль
