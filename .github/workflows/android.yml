@@ -1,0 +1,175 @@
+name: Android
+
+# SS14.Android: the Android launcher APK and the precompiled (AOT) code packs it downloads.
+#
+# Run manually ("Run workflow"):
+#   publish                -> release android-launcher-v<app version> with the APK
+#   aot_runtimes           -> release android-runtime-aot-v<runtime>/runtime-aot-android-arm64.zip for every
+#                             runtime in Robust.Client.Android/aot/runtime-versions.txt
+#   aot_official_engines   -> release android-official-aot-v<engine>/official-aot-android-arm64.zip for each
+#                             listed official engine version (e.g. "296.0.0 267.0.0")
+# On push, missing AOT packs are built automatically: runtimes from aot/runtime-versions.txt, official
+# engines from aot/official-engines.txt.
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish the APK as release android-launcher-v<version>"
+        type: boolean
+        default: false
+      aot_runtimes:
+        description: "Build + publish AOT packs of the .NET runtimes"
+        type: boolean
+        default: false
+      aot_official_engines:
+        description: "Official engine versions to build + publish AOT packs for (space separated)"
+        type: string
+        default: ""
+  push:
+    paths:
+      - "Robust.Client.Android/**"
+      - "Robust.Launcher.Core/**"
+      - "Robust.Android.GameHost/**"
+      - ".github/workflows/android.yml"
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_NOLOGO: 1
+  NDK_VERSION: 27.2.12479018
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          submodules: true
+
+      - uses: actions/setup-dotnet@v4.1.0
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Android workload and SDK packages
+        run: |
+          dotnet workload install android
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" "ndk;$NDK_VERSION"
+
+      - name: Cache native libraries
+        id: natives-cache
+        uses: actions/cache@v4
+        with:
+          path: Robust.Client.Android/natives/out
+          key: android-natives-${{ hashFiles('Robust.Client.Android/natives/build-natives.sh', 'Robust.Client.Android/natives/robust_host.c') }}
+
+      - name: Build native libraries
+        if: steps.natives-cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update && sudo apt-get install -y ninja-build
+          ANDROID_NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION" Robust.Client.Android/natives/build-natives.sh
+
+      - name: Build APK
+        run: |
+          dotnet publish Robust.Client.Android/Robust.Client.Android.csproj -c Release \
+            -p:AndroidSdkDirectory="$ANDROID_HOME" -o apk-out
+          mkdir -p release
+          cp apk-out/*-Signed.apk release/SS14.Android.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: release/
+
+      - name: Publish release
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(grep -oP '(?<=<ApplicationDisplayVersion>)[^<]+' Robust.Client.Android/Robust.Client.Android.csproj)
+          TAG="android-launcher-v$VERSION"
+          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --target "$GITHUB_SHA" \
+            --title "SS14.Android $VERSION" --notes "Android launcher $VERSION."
+          gh release upload "$TAG" --clobber release/SS14.Android.apk
+
+  aot-runtimes:
+    # On push: only packs not published yet.
+    if: ${{ github.event_name == 'push' || inputs.aot_runtimes }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Install NDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;$NDK_VERSION" > /dev/null
+
+      - name: Compile and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION"
+          export AOT_CACHE="$RUNNER_TEMP/aot-cache"
+          while IFS='=' read -r major ver; do
+            [ -z "$ver" ] && continue
+            TAG="android-runtime-aot-v$ver"
+            if [ "$GITHUB_EVENT_NAME" = push ] && gh release view "$TAG" --json assets -q '.assets[].name' 2>/dev/null | grep -q .; then
+              echo "$TAG already published"; continue
+            fi
+            out="$RUNNER_TEMP/rt-$ver"
+            Robust.Client.Android/aot/aot-compile.sh "$ver" "$out" -- @framework
+            (cd "$out" && zip -q -9 "$RUNNER_TEMP/runtime-aot-android-arm64.zip" *.dll.so)
+            gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --target "$GITHUB_SHA" \
+              --title ".NET $ver AOT (android-arm64)" --notes "Precompiled .NET $ver framework for the Android launcher."
+            gh release upload "$TAG" --clobber "$RUNNER_TEMP/runtime-aot-android-arm64.zip"
+            rm "$RUNNER_TEMP/runtime-aot-android-arm64.zip"
+          done < Robust.Client.Android/aot/runtime-versions.txt
+
+  aot-official:
+    if: ${{ github.event_name == 'push' || inputs.aot_official_engines != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Install NDK
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;$NDK_VERSION" > /dev/null
+
+      - name: Compile and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ENGINES: ${{ inputs.aot_official_engines }}
+        run: |
+          set -e
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION"
+          export AOT_CACHE="$RUNNER_TEMP/aot-cache"
+          [ -z "$ENGINES" ] && ENGINES=$(grep -v '^#' Robust.Client.Android/aot/official-engines.txt | xargs)
+          curl -fsSL https://robust-builds.cdn.spacestation14.com/manifest.json -o "$RUNNER_TEMP/manifest.json"
+          for v in $ENGINES; do
+            TAG="android-official-aot-v$v"
+            if [ "$GITHUB_EVENT_NAME" = push ] && gh release view "$TAG" --json assets -q '.assets[].name' 2>/dev/null | grep -q .; then
+              echo "$TAG already published"; continue
+            fi
+            url=$(jq -r --arg v "$v" '.[$v].platforms["linux-arm64"].url // empty' "$RUNNER_TEMP/manifest.json")
+            if [ -z "$url" ]; then echo "::warning::no linux-arm64 build of $v"; continue; fi
+            eng="$RUNNER_TEMP/engine-$v"; mkdir -p "$eng"
+            curl -fsSL "$url" -o "$eng.zip" && unzip -q -o "$eng.zip" -d "$eng"
+            major=$(jq -r '.runtimeOptions.framework.version // (.runtimeOptions.frameworks[] | select(.name=="Microsoft.NETCore.App").version)' \
+              "$eng/Robust.Client.runtimeconfig.json" | cut -d. -f1)
+            ver=$(grep "^$major=" Robust.Client.Android/aot/runtime-versions.txt | cut -d= -f2)
+            if [ -z "$ver" ]; then echo "::warning::engine $v needs .NET $major, no pinned runtime"; continue; fi
+            out="$RUNNER_TEMP/aot-$v"
+            Robust.Client.Android/aot/aot-compile.sh "$ver" "$out" "$eng" -- "$eng"
+            (cd "$out" && zip -q -9 "$RUNNER_TEMP/official-aot-android-arm64.zip" *.dll.so)
+            gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --target "$GITHUB_SHA" \
+              --title "Official engine $v AOT (android-arm64, .NET $ver)" \
+              --notes "Precompiled code for the official engine build $v, used by the Android launcher."
+            gh release upload "$TAG" --clobber "$RUNNER_TEMP/official-aot-android-arm64.zip"
+            rm "$RUNNER_TEMP/official-aot-android-arm64.zip"
+          done

@@ -1,3 +1,18 @@
+# SS14.Android
+
+Ветка **SS14.Android** — Android-версия лаунчера: список серверов, вход в аккаунт, загрузка движка и контента, запуск игры с сенсорным управлением.
+
+| Папка | Что это |
+|---|---|
+| `Robust.Client.Android` | APK: интерфейс лаунчера, процесс игры (SDL3), нативные библиотеки, AOT |
+| `Robust.Launcher.Core` | хаб, авторизация, загрузка движка, контента и среды .NET |
+| `Robust.Android.GameHost` | точка входа в процессе игры, запускает движок |
+| `Robust.Launcher.Cli` | тот же лаунчер в консоли, для проверки на ПК |
+
+Сборка и устройство описаны в [Robust.Client.Android/README.md](Robust.Client.Android/README.md), CI находится в `.github/workflows/android.yml`. Ниже — исходный README настольного лаунчера.
+
+---
+
 # SS14.Launcher
 
 <a href="https://weblate.spacestation14.com/engage/space-station-14-launcher/">

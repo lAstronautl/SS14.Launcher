@@ -1,0 +1,5 @@
+# .NET runtime versions the Android launcher uses, one per major (major=version).
+# AOT images only load into the exact runtime version they were compiled for, so the launcher
+# (Robust.Launcher.Core/RuntimeManager.cs, PinnedVersions) and CI must agree on these.
+9=9.0.23
+10=10.0.15

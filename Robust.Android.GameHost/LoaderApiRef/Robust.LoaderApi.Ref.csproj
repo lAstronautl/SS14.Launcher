@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Compile-time copy of Robust.LoaderApi for net6.0. Never shipped: at runtime the game host uses the
+       Robust.LoaderApi.dll that comes with the engine build, so the types match the engine exactly. -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>Robust.LoaderApi</AssemblyName>
+    <RootNamespace>Robust.LoaderApi</RootNamespace>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Robust.LoaderApi\Robust.LoaderApi\*.cs" />
+  </ItemGroup>
+</Project>

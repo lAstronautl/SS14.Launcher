@@ -11,3 +11,8 @@ SS14.Launcher/FodyWeavers.xsd
 
 !PublishFiles/Space Station 14 Launcher.app/Contents/Resources/bin/
 __pycache__
+
+# Android (SS14.Android)
+apk-out/
+Robust.Client.Android/natives/work/
+Robust.Client.Android/natives/out/

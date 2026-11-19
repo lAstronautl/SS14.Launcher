@@ -1,0 +1,2 @@
+# Official engine versions to precompile on push (one per line). Servers on other versions just JIT.
+296.0.0

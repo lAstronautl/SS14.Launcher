@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colors from the official SS14 launcher theme (SS14.Launcher/Theme/ThemeResources.xaml). -->
+    <style name="LauncherTheme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">#25252A</item>
+        <item name="android:colorPrimaryDark">#1E1E22</item>
+        <item name="android:colorAccent">#ADA24B</item>
+        <item name="android:colorControlActivated">#3E6C45</item>
+        <item name="android:textColorPrimary">#EEEEEE</item>
+        <item name="android:textColorSecondary">#AAAAAA</item>
+        <item name="android:windowBackground">#25252A</item>
+        <item name="android:statusBarColor">#1E1E22</item>
+        <item name="android:navigationBarColor">#25252A</item>
+        <item name="android:alertDialogTheme">@style/LauncherDialog</item>
+    </style>
+    <style name="LauncherDialog" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">#ADA24B</item>
+        <item name="android:colorControlActivated">#3E6C45</item>
+        <item name="android:windowBackground">@drawable/dialog_background</item>
+        <item name="android:textColorPrimary">#EEEEEE</item>
+        <item name="android:textColor">#EEEEEE</item>
+    </style>
+    <style name="GameTheme" parent="android:Theme.Material.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">#000000</item>
+    </style>
+</resources>

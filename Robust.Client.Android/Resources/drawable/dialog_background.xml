@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Popup background of the official launcher (#202025) with a slate border. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="16dp">
+    <shape android:shape="rectangle">
+        <solid android:color="#202025" />
+        <stroke android:width="2dp" android:color="#464966" />
+    </shape>
+</inset>

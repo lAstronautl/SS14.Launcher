@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Desktop test harness for Robust.Launcher.Core: does exactly what the Android launcher does,
+       so the launcher → engine path can be tested without a phone. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Robust.Launcher.Core\Robust.Launcher.Core.csproj" />
+    <ProjectReference Include="..\Robust.LoaderApi\Robust.LoaderApi\Robust.LoaderApi.csproj" />
+    <!-- Copied next to the CLI and run in a child process on the engine's runtime version. -->
+    <ProjectReference Include="..\Robust.Android.GameHost\Robust.Android.GameHost.csproj" ReferenceOutputAssembly="false" OutputItemType="GameHostOutput" />
+  </ItemGroup>
+  <Target Name="CopyGameHost" AfterTargets="Build">
+    <ItemGroup>
+      <_GameHostFiles Include="..\Robust.Android.GameHost\bin\$(Configuration)\net6.0\Robust.Android.GameHost.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_GameHostFiles)" DestinationFolder="$(OutDir)" />
+  </Target>
+</Project>
