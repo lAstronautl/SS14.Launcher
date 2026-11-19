@@ -22,6 +22,8 @@ public sealed class LauncherSettings
     public string DiscordUrl { get; set; } = "https://discord.ss14.io/";
     public string WebsiteUrl { get; set; } = "https://spacestation14.com";
     public string NewsFeedUrl { get; set; } = "https://spacestation14.com/post/index.xml";
+    /// <summary>Check GitHub releases for a newer launcher on start (Launcher/Updater.cs).</summary>
+    public bool AutoUpdate { get; set; } = true;
     public bool TouchControls { get; set; } = true;
     public int TouchOpacity { get; set; } = 60;
     public float TouchScale { get; set; } = 1f;

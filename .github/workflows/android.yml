@@ -77,28 +77,50 @@ jobs:
           sudo apt-get update && sudo apt-get install -y ninja-build
           ANDROID_NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION" Robust.Client.Android/natives/build-natives.sh
 
+      # Release signing key (same key for every build, otherwise the launcher cannot update itself):
+      # repository secrets ANDROID_KEYSTORE_BASE64 (base64 of the .keystore), ANDROID_KEYSTORE_PASSWORD,
+      # ANDROID_KEY_ALIAS. Without them the APK is signed with a throwaway debug key and not published.
       - name: Build APK
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
+          SIGN=()
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            SIGN=(-p:AndroidKeyStore=true -p:AndroidSigningKeyStore="$RUNNER_TEMP/release.keystore"
+                  -p:AndroidSigningStorePass="$KEYSTORE_PASS" -p:AndroidSigningKeyPass="$KEYSTORE_PASS"
+                  -p:AndroidSigningKeyAlias="$KEY_ALIAS")
+            echo "SIGNED=true" >> "$GITHUB_ENV"
+          fi
           dotnet publish Robust.Client.Android/Robust.Client.Android.csproj -c Release \
-            -p:AndroidSdkDirectory="$ANDROID_HOME" -o apk-out
+            -p:AndroidSdkDirectory="$ANDROID_HOME" "${SIGN[@]}" -o apk-out
+          rm -f "$RUNNER_TEMP/release.keystore"
           mkdir -p release
-          cp apk-out/*-Signed.apk release/SS14.Android.apk
+          cp apk-out/*-Signed.apk release/PDAStation14.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: release/
 
+      # Every new ApplicationDisplayVersion becomes release android-launcher-v<version>; installed launchers
+      # find it and update themselves (Launcher/Updater.cs).
       - name: Publish release
-        if: ${{ inputs.publish }}
+        if: ${{ env.SIGNED == 'true' && (github.event_name == 'push' || inputs.publish) }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION=$(grep -oP '(?<=<ApplicationDisplayVersion>)[^<]+' Robust.Client.Android/Robust.Client.Android.csproj)
           TAG="android-launcher-v$VERSION"
-          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --target "$GITHUB_SHA" \
-            --title "SS14.Android $VERSION" --notes "Android launcher $VERSION."
-          gh release upload "$TAG" --clobber release/SS14.Android.apk
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            [ "$GITHUB_EVENT_NAME" = push ] && { echo "$TAG already published"; exit 0; }
+          else
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "PDAStation14 $VERSION" \
+              --notes "Android launcher PDAStation14 $VERSION."
+          fi
+          gh release upload "$TAG" --clobber release/PDAStation14.apk
 
   aot-runtimes:
     # On push: only packs not published yet.
