@@ -8,7 +8,7 @@ namespace Robust.Client.Android.Launcher;
 /// <param name="Players">-1 = unknown yet, -2 = offline.</param>
 /// <param name="RunLevel">0 = lobby, 1 = in round, 2 = post round (as reported by the server).</param>
 public sealed record ServerItem(string Address, string Name, int Players, int MaxPlayers, int? RunLevel = null,
-    DateTime? RoundStart = null);
+    DateTime? RoundStart = null, string[]? Tags = null);
 
 /// <summary>
 /// Server rows as in the official launcher (ServerEntryView): expander arrow, name, round time, players and a
@@ -40,21 +40,19 @@ internal sealed class ServerAdapter(
     public override int Count => _items.Count;
     public override long GetItemId(int position) => position;
 
-    /// <summary>"3ч 58м", "22м", "Лобби", like the launcher's round time column.</summary>
+    /// <summary>Round time column: server-entry-round-time / server-entry-status-lobby, as the launcher shows it.</summary>
     public static string RoundTimeText(ServerItem item)
     {
         if (item.Players < 0)
             return "";
         if (item.RunLevel == 0)
-            return "Лобби";
-        if (item.RunLevel == 2)
-            return "Конец раунда";
+            return Loc.Get("server-entry-status-lobby");
         if (item.RoundStart is not { } start)
             return "";
         var t = DateTime.UtcNow - start;
         if (t < TimeSpan.Zero)
             t = TimeSpan.Zero;
-        return t.TotalHours >= 1 ? $"{(int)t.TotalHours}ч {t.Minutes}м" : $"{t.Minutes}м";
+        return Loc.Get("server-entry-round-time", ("hours", (int)t.TotalHours), ("mins", t.Minutes)).Trim();
     }
 
     /// <summary>Phone in portrait: narrower columns and a shorter button so the name stays readable.</summary>
@@ -62,7 +60,7 @@ internal sealed class ServerAdapter(
 
     public static int TimeWidth(Context ctx) => Narrow(ctx) ? 56 : 80;
     public static int PlayersWidth(Context ctx) => Narrow(ctx) ? 62 : 90;
-    public static int ButtonWidth(Context ctx) => Narrow(ctx) ? 72 : 120;
+    public static int ButtonWidth(Context ctx) => Narrow(ctx) ? 86 : 120;
 
     public static LinearLayout.LayoutParams Column(Context ctx, int widthDp) =>
         new(Ui.Dp(ctx, widthDp), ViewGroup.LayoutParams.WrapContent);
@@ -92,15 +90,18 @@ internal sealed class ServerAdapter(
 
         var players = item.Players switch
         {
-            -1 => Ui.Label(ctx, "…", 14, Ui.Muted),
-            -2 => Ui.Label(ctx, "Не в сети", 13, Ui.Bad),
-            _ => Ui.Label(ctx, $"{item.Players} / {item.MaxPlayers}", 14),
+            -1 => Ui.Label(ctx, Loc.Get("server-entry-fetching"), 13, Ui.Muted),
+            -2 => Ui.Label(ctx, Loc.Get("server-entry-offline"), 13, Ui.Bad),
+            _ => Ui.Label(ctx, Loc.Get("server-entry-player-count", ("players", item.Players), ("max", item.MaxPlayers))
+                .Replace("\n", "").Trim(), 14),
         };
         players.Gravity = GravityFlags.End;
         row.AddView(players, Column(ctx, PlayersWidth(ctx)));
 
-        var connectButton = Ui.Button(ctx, Narrow(ctx) ? "Войти" : "Подключиться", () => connect(item));
-        connectButton.SetTextSize(global::Android.Util.ComplexUnitType.Sp, 13);
+        var connectButton = Ui.Button(ctx, Loc.Get("server-entry-connect"), () => connect(item));
+        connectButton.SetTextSize(global::Android.Util.ComplexUnitType.Sp, Narrow(ctx) ? 12 : 13);
+        connectButton.SetSingleLine(true);
+        connectButton.Ellipsize = TextUtils.TruncateAt.End;
         connectButton.SetPadding(Ui.Dp(ctx, 4), Ui.Dp(ctx, 4), Ui.Dp(ctx, 4), Ui.Dp(ctx, 4));
         connectButton.SetMinWidth(0);
         connectButton.SetMinimumWidth(0);

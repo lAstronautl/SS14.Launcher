@@ -18,8 +18,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationId>com.pdastation14.launcher</ApplicationId>
     <ApplicationTitle>PDAStation14</ApplicationTitle>
-    <ApplicationVersion>16</ApplicationVersion>
-    <ApplicationDisplayVersion>0.4.0</ApplicationDisplayVersion>
+    <ApplicationVersion>17</ApplicationVersion>
+    <ApplicationDisplayVersion>0.5.0</ApplicationDisplayVersion>
     <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <RootNamespace>Robust.Client.Android</RootNamespace>
@@ -77,4 +77,20 @@
   <Target Name="CheckNatives" BeforeTargets="PrepareForBuild" Condition="!Exists('$(NativesDir)java/sdl3.jar')">
     <Error Text="Android native libraries missing. Run Robust.Client.Android/natives/build-natives.sh first." />
   </Target>
+  <!--
+    Everything the desktop launcher (SS14.Launcher, same repository) ships that the Android UI reuses as is:
+    translations (Fluent .ftl, loaded with Linguini like LocalizationManager does), logo, icons, Noto Sans.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Linguini.Bundle" Version="0.11.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="..\SS14.Launcher\Assets\Locale\**\*.ftl" Link="Assets\Locale\%(RecursiveDir)%(Filename)%(Extension)" />
+    <AndroidAsset Include="Locale\**\*.ftl" Link="Assets\Locale\%(RecursiveDir)%(Filename)%(Extension)" />
+    <AndroidAsset Include="..\SS14.Launcher\Assets\logo-long.png" Link="Assets\images\logo-long.png" />
+    <AndroidAsset Include="..\SS14.Launcher\Assets\check.png;..\SS14.Launcher\Assets\cross.png" Link="Assets\images\%(Filename)%(Extension)" />
+    <AndroidAsset Include="..\SS14.Launcher\Assets\info-icons\*.png" Link="Assets\images\info-icons\%(Filename)%(Extension)" />
+    <AndroidAsset Include="..\SS14.Launcher\Assets\button-icons\*.png" Link="Assets\images\button-icons\%(Filename)%(Extension)" />
+    <AndroidAsset Include="..\SS14.Launcher\Assets\Fonts\noto_sans\*.ttf" Link="Assets\fonts\%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

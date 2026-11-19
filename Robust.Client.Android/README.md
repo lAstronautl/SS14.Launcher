@@ -65,3 +65,12 @@ ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018 Robust.Client.Android/natives/b
 dotnet publish Robust.Client.Android -c Release -p:AndroidSdkDirectory=$ANDROID_HOME -o apk-out
 ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018 Robust.Client.Android/aot/aot-compile.sh 10.0.15 out -- @framework
 ```
+
+## Что взято из настольного лаунчера
+
+Android-интерфейс использует файлы `SS14.Launcher` из этого же репозитория напрямую, без копий:
+
+- переводы: `SS14.Launcher/Assets/Locale/*/text.ftl`, загружаются через Linguini так же, как в `LocalizationManager`. Есть выбор языка. Строки, которых нет в настольном лаунчере, лежат в `Robust.Client.Android/Locale/{ru,en-US}/android.ftl`;
+- логотип `logo-long.png`, иконки `info-icons/` и `button-icons/`, шрифты Noto Sans. Лицензии указаны в `SS14.Launcher/Assets/attribution.yml`;
+- теги и фильтры серверов (`ServerTagInfer`, `ServerListFiltersViewModel`), перенесены в `Robust.Launcher.Core/ServerTags.cs`;
+- строка сервера (`ServerEntryView`): время раунда, игроки, описание, ссылки сервера, избранное, «Поднять на самый верх».

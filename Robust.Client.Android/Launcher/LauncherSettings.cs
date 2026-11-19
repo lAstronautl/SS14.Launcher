@@ -15,6 +15,10 @@ public sealed class LauncherSettings
     public HashSet<string> TrustedServers { get; set; } = new();
     public string HubUrl { get; set; } = ServerApi.DefaultHubUrl;
     public string EngineReleaseBase { get; set; } = EngineManager.DefaultReleaseBase;
+    /// <summary>Launcher language ("" = system), like the desktop launcher's Language CVar.</summary>
+    public string Language { get; set; } = "";
+    /// <summary>Server list filters (same categories as the desktop launcher).</summary>
+    public ServerFilterSet Filters { get; set; } = new();
     public string DiscordUrl { get; set; } = "https://discord.ss14.io/";
     public string WebsiteUrl { get; set; } = "https://spacestation14.com";
     public string NewsFeedUrl { get; set; } = "https://spacestation14.com/post/index.xml";

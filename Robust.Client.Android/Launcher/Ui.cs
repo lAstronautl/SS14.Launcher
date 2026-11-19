@@ -301,6 +301,63 @@ internal static class Ui
         return lp;
     }
 
+    private static readonly Dictionary<string, Bitmap?> Bitmaps = new();
+
+    /// <summary>Image from the desktop launcher's assets (packaged under "images/").</summary>
+    public static Bitmap? Asset(Context ctx, string path)
+    {
+        if (Bitmaps.TryGetValue(path, out var b))
+            return b;
+        try
+        {
+            using var stream = ctx.Assets!.Open("images/" + path);
+            b = BitmapFactory.DecodeStream(stream);
+        }
+        catch
+        {
+            b = null;
+        }
+
+        Bitmaps[path] = b;
+        return b;
+    }
+
+    /// <summary>Asset image scaled to a height (pixel-art friendly: no smoothing).</summary>
+    public static ImageView Image(Context ctx, string path, float heightDp)
+    {
+        var v = new ImageView(ctx);
+        var bmp = Asset(ctx, path);
+        if (bmp != null)
+        {
+            var d = new BitmapDrawable(ctx.Resources, bmp);
+            d.SetFilterBitmap(false);
+            v.SetImageDrawable(d);
+        }
+
+        v.SetAdjustViewBounds(true);
+        v.SetScaleType(ImageView.ScaleType.FitStart!);
+        v.LayoutParameters = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WrapContent, Dp(ctx, heightDp));
+        return v;
+    }
+
+    /// <summary>Button with a launcher icon before the text, like the launcher's IconLabel.</summary>
+    public static Button IconButton(Context ctx, string iconPath, string text, Action onClick, float iconDp = 16,
+        bool primary = false, bool openLeft = false, bool openRight = false)
+    {
+        var b = Button(ctx, text, onClick, primary, openLeft, openRight);
+        if (Asset(ctx, iconPath) is { } bmp)
+        {
+            var d = new BitmapDrawable(ctx.Resources, bmp);
+            d.SetFilterBitmap(false);
+            var size = Dp(ctx, iconDp);
+            d.SetBounds(0, 0, size, size);
+            b.SetCompoundDrawables(d, null, null, null);
+            b.CompoundDrawablePadding = text.Length > 0 ? Dp(ctx, 6) : 0;
+        }
+
+        return b;
+    }
+
     /// <summary>Dialog in the launcher's popup style.</summary>
     public static AlertDialog.Builder Dialog(Context ctx, string title) =>
         new AlertDialog.Builder(ctx, Resource.Style.LauncherDialog).SetTitle(title)!;

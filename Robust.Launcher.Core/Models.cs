@@ -30,7 +30,14 @@ public sealed class ServerInfo
     [JsonPropertyName("auth")] public ServerAuthInfo? Auth { get; set; }
     [JsonPropertyName("build")] public ServerBuildInfo? Build { get; set; }
     [JsonPropertyName("desc")] public string? Description { get; set; }
+    [JsonPropertyName("links")] public ServerInfoLink[]? Links { get; set; }
 }
+
+/// <summary>Link shown under a server's description (discord, wiki, web, github, forum, telegram icons).</summary>
+public sealed record ServerInfoLink(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("icon")] string? Icon,
+    [property: JsonPropertyName("url")] string Url);
 
 public sealed class ServerAuthInfo
 {
