@@ -110,7 +110,8 @@ public sealed class MainActivity : Activity
             _tabButtons[tab] = t;
         }
 
-        tabs.AddView(new View(this), Ui.Fill(1));
+        // A bare View with wrap_content takes all the space offered: give spacers an explicit height.
+        tabs.AddView(new View(this), new LinearLayout.LayoutParams(0, 1, 1));
         tabs.AddView(Ui.Label(this, "v" + PackageManager!.GetPackageInfo(PackageName!, 0)!.VersionName, 13, Ui.Muted),
             Ui.Wrap());
         root.AddView(tabs);
@@ -199,7 +200,7 @@ public sealed class MainActivity : Activity
         var players = Ui.Label(this, Loc.Get("tab-servers-table-players"), 14, Ui.Muted);
         players.Gravity = GravityFlags.End;
         row.AddView(players, ServerAdapter.Column(this, ServerAdapter.PlayersWidth(this)));
-        row.AddView(new View(this), ServerAdapter.Column(this, ServerAdapter.ButtonWidth(this) + 6));
+        row.AddView(new View(this), new LinearLayout.LayoutParams(Ui.Dp(this, ServerAdapter.ButtonWidth(this) + 6), 1));
         return row;
     }
 
