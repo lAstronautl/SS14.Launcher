@@ -8,7 +8,8 @@
     <PublishSingleFile>true</PublishSingleFile>-->
     <IsPackable>false</IsPackable>
     <DefineConstants Condition="'$(FullRelease)' == 'True'">FULL_RELEASE;$(DefineConstants)</DefineConstants>
-    <DefineConstants Condition="'$(FullRelease)' != 'True'">DEVELOPMENT;$(DefineConstants)</DefineConstants>
+    <!-- AstroLauncher: DEVELOPMENT is always defined, so the Development tab exists in every build. -->
+    <DefineConstants>DEVELOPMENT;$(DefineConstants)</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>CA1416</NoWarn>
     <!-- Avalonia 12 defaults to compiled bindings, but our XAML uses reflection bindings. -->

@@ -175,7 +175,7 @@ internal class Program
         if (!SignatureAlgorithm.Ed25519.Verify(pubKey, robustBytes, sig))
         {
             // ONLY allow disabling signing on debug mode.
-#if !RELEASE
+#if !RELEASE || ASTRO_DEV
             var disableVar = Environment.GetEnvironmentVariable("SS14_DISABLE_SIGNING");
             if (!string.IsNullOrEmpty(disableVar) && bool.Parse(disableVar))
             {

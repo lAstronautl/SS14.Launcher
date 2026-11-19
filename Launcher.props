@@ -17,5 +17,11 @@
         https://github.com/space-wizards/SS14.Launcher/issues/198
         -->
         <CETCompat>false</CETCompat>
+
+        <!--
+        AstroLauncher: developer features (Development tab, engine override, disabling signature checks)
+        are compiled into every build, including Release / FullRelease ones.
+        -->
+        <DefineConstants>$(DefineConstants);ASTRO_DEV</DefineConstants>
     </PropertyGroup>
 </Project>

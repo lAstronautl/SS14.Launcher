@@ -234,7 +234,7 @@ public sealed partial class EngineManagerDynamic : IEngineManager
 
             if (!VerifyModuleSignature(tempFile, platformData.Sig))
             {
-#if DEBUG
+#if DEBUG || ASTRO_DEV
                 if (_cfg.GetCVar(CVars.DisableSigning))
                 {
                     Log.Debug("Signature check failed for module, ignoring because signing disabled");
