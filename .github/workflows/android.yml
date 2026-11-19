@@ -77,6 +77,15 @@ jobs:
           sudo apt-get update && sudo apt-get install -y ninja-build
           ANDROID_NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION" Robust.Client.Android/natives/build-natives.sh
 
+      - name: Cache bundled AOT packs
+        uses: actions/cache@v4
+        with:
+          path: Robust.Client.Android/aot/bundled
+          key: aot-bundled-${{ hashFiles('Robust.Client.Android/aot/bundled.txt', 'Robust.Client.Android/aot/runtime-versions.txt', 'Robust.Client.Android/aot/aot-compile.sh') }}
+
+      - name: Build bundled AOT packs
+        run: ANDROID_NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION" Robust.Client.Android/aot/bundle-packs.sh
+
       - name: Build APK
         run: |
           dotnet publish Robust.Client.Android/Robust.Client.Android.csproj -c Release \

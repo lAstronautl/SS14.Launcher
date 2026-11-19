@@ -1,0 +1,5 @@
+# Precompiled (AOT) packs shipped inside the APK, built by bundle-packs.sh (and CI) into aot/bundled/.
+# One per line: "runtime <version>" (.NET framework) or "official <engine version>" (official engine build).
+# Keep it to the servers people actually play on: each official engine adds ~10 MB, a runtime ~17 MB.
+runtime 9.0.23
+official 267.3.0

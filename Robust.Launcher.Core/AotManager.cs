@@ -32,6 +32,27 @@ public sealed class AotManager
     }
 
     /// <summary>Only arm64 phones get AOT packs (x86_64 emulators JIT).</summary>
+    /// <summary>
+    /// Packs shipped inside the app: opens "&lt;release tag&gt;.zip" (e.g. android-official-aot-v267.3.0.zip) and returns
+    /// its stream and size, or null. Tried before downloading.
+    /// </summary>
+    public static Func<string, (Stream Stream, long Length)?>? Bundled { get; set; }
+
+    /// <summary>Name a pack has when shipped inside the app: its release tag + ".zip".</summary>
+    public static string BundleName(Uri url) => url.Segments[^2].TrimEnd('/') + ".zip";
+
+    private static (Stream Stream, long Length)? OpenBundled(Uri url)
+    {
+        try
+        {
+            return Bundled?.Invoke(BundleName(url));
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public static bool Supported => RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
 
     public Uri RuntimePackUrl(string runtimeVersion) =>
@@ -53,6 +74,12 @@ public sealed class AotManager
     /// <summary>Download size of a pack, or null when it is not published.</summary>
     public async Task<long?> GetSizeAsync(Uri url, CancellationToken ct)
     {
+        if (OpenBundled(url) is { } b)
+        {
+            b.Stream.Dispose();
+            return b.Length;
+        }
+
         try
         {
             using var req = new HttpRequestMessage(HttpMethod.Head, url);
@@ -84,13 +111,29 @@ public sealed class AotManager
         var tmp = Path.Combine(targetDir, ".aot.zip.part");
         try
         {
-            using (var resp = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct))
+            HttpResponseMessage? resp = null;
+            Stream src;
+            long total;
+            if (OpenBundled(url) is { } bundled)
             {
+                (src, total) = bundled;
+            }
+            else
+            {
+                resp = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
                 if (!resp.IsSuccessStatusCode)
+                {
+                    resp.Dispose();
                     return 0; // No pack published for this version: JIT only.
+                }
 
-                var total = resp.Content.Headers.ContentLength ?? 0;
-                await using var src = await resp.Content.ReadAsStreamAsync(ct);
+                total = resp.Content.Headers.ContentLength ?? 0;
+                src = await resp.Content.ReadAsStreamAsync(ct);
+            }
+
+            using (resp)
+            await using (src)
+            {
                 await using var dst = File.Create(tmp);
                 var buf = new byte[81920];
                 long done = 0;

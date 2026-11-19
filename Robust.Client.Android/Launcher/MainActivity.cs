@@ -53,6 +53,20 @@ public sealed class MainActivity : Activity
         base.OnCreate(savedInstanceState);
         _settings = LauncherSettings.Load(FilesPath);
         Loc.Initialize(this, _settings.Language);
+        // AOT packs shipped in the APK (aot/bundled.txt), tried before downloading.
+        var assets = Assets!;
+        AotManager.Bundled = name =>
+        {
+            try
+            {
+                using var fd = assets.OpenFd("aot/" + name);
+                return (assets.Open("aot/" + name), fd.Length);
+            }
+            catch (Java.IO.IOException)
+            {
+                return null;
+            }
+        };
         CleanupOldRuntimeLocation();
         Window?.SetStatusBarColor(Ui.ListRowA);
         Window?.SetNavigationBarColor(Ui.Bg);

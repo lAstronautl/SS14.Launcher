@@ -18,8 +18,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationId>com.pdastation14.launcher</ApplicationId>
     <ApplicationTitle>PDAStation14</ApplicationTitle>
-    <ApplicationVersion>21</ApplicationVersion>
-    <ApplicationDisplayVersion>0.6.2</ApplicationDisplayVersion>
+    <ApplicationVersion>22</ApplicationVersion>
+    <ApplicationDisplayVersion>0.7.0</ApplicationDisplayVersion>
     <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <RootNamespace>Robust.Client.Android</RootNamespace>
@@ -86,6 +86,8 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidAsset Include="..\SS14.Launcher\Assets\Locale\**\*.ftl" Link="Assets\Locale\%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- Precompiled code packs built by aot/bundle-packs.sh (.zip is stored uncompressed, so OpenFd gives the size). -->
+    <AndroidAsset Include="aot\bundled\*.zip" Link="Assets\aot\%(Filename)%(Extension)" />
     <AndroidAsset Include="Locale\**\*.ftl" Link="Assets\Locale\%(RecursiveDir)%(Filename)%(Extension)" />
     <AndroidAsset Include="..\SS14.Launcher\Assets\logo-long.png" Link="Assets\images\logo-long.png" />
     <AndroidAsset Include="..\SS14.Launcher\Assets\check.png;..\SS14.Launcher\Assets\cross.png" Link="Assets\images\%(Filename)%(Extension)" />

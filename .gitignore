@@ -16,3 +16,4 @@ __pycache__
 apk-out/
 Robust.Client.Android/natives/work/
 Robust.Client.Android/natives/out/
+Robust.Client.Android/aot/bundled/
